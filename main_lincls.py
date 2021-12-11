@@ -266,8 +266,8 @@ def main_worker(gpu, ngpus_per_node, args):
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
 
-    trainset = datasets.CIFAR10(args.data, train=True, transform=transform_train)
-    valset = datasets.CIFAR10(args.data, train=False, transform=transform_test)
+    trainset = datasets.CIFAR10(args.data, train=True, transform=transform_train, download=True)
+    valset = datasets.CIFAR10(args.data, train=False, transform=transform_test, download=True)
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(trainset)
