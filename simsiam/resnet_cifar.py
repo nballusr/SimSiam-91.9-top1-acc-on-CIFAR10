@@ -104,7 +104,7 @@ class ResNet(nn.Module):
 
 class ResNetWithDropout(nn.Module):
     def __init__(self, block, num_blocks, low_dim=128):
-        super(ResNet, self).__init__()
+        super(ResNetWithDropout, self).__init__()
         self.in_planes = 64
 
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
