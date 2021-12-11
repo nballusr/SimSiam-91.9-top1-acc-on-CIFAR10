@@ -21,7 +21,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-from simsiam.resnet_cifar import ResNet18, ResNet34, ResNet50, ResNet101, ResNet152
+from simsiam.resnet_cifar import ResNet18WithDropout
 from PIL import Image
 
 
@@ -86,12 +86,8 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
 parser.add_argument('--pretrained', default='', type=str, help='path to pretrained checkpoint')
 
 
-def get_backbone(backbone_name, num_cls=10):
-    models = {'resnet18': ResNet18(low_dim=num_cls),
-              'resnet34': ResNet34(low_dim=num_cls),
-              'resnet50': ResNet50(low_dim=num_cls),
-              'resnet101': ResNet101(low_dim=num_cls),
-              'resnet152': ResNet152(low_dim=num_cls)}
+def get_backbone_with_dropout(backbone_name, num_cls=10):
+    models = {'resnet18': ResNet18WithDropout(low_dim=num_cls)}
 
     return models[backbone_name]
 
@@ -160,7 +156,7 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     print("=> creating model '{}'".format(args.arch))
     # model = models.__dict__[args.arch]()
-    model = get_backbone(args.arch, args.num_cls)
+    model = get_backbone_with_dropout(args.arch, args.num_cls)
 
     # freeze all layers but the last fc
     for name, param in model.named_parameters():
