@@ -21,7 +21,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-from simsiam.resnet_cifar import ResNet18WithDropout
+from simsiam.resnet_cifar import ResNet18, ResNet18WithDropout
 from PIL import Image
 
 
@@ -84,6 +84,12 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'multi node data parallel training')
 
 parser.add_argument('--pretrained', default='', type=str, help='path to pretrained checkpoint')
+
+
+def get_backbone(backbone_name, num_cls=10):
+    models = {'resnet18': ResNet18(low_dim=num_cls)}
+
+    return models[backbone_name]
 
 
 def get_backbone_with_dropout(backbone_name, num_cls=10):
@@ -156,7 +162,8 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     print("=> creating model '{}'".format(args.arch))
     # model = models.__dict__[args.arch]()
-    model = get_backbone_with_dropout(args.arch, args.num_cls)
+    model = get_backbone(args.arch, args.num_cls)
+    # model = get_backbone_with_dropout(args.arch, args.num_cls)
 
     # freeze all layers but the last fc
     for name, param in model.named_parameters():
@@ -181,6 +188,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
             args.start_epoch = 0
             msg = model.load_state_dict(new_state_dict, strict=False)
+            print(msg)
             assert set(msg.missing_keys) == {"fc.weight", "fc.bias"}
 
             print("=> loaded pre-trained model '{}'".format(args.pretrained))
@@ -252,16 +260,17 @@ def main_worker(gpu, ngpus_per_node, args):
 
     # Data loading code
     transform_train = transforms.Compose([
-        transforms.RandomResizedCrop(32, scale=(0.8, 1.0),
-                                     ratio=(3.0 / 4.0, 4.0 / 3.0),
-                                     interpolation=Image.BICUBIC),
+        # transforms.RandomResizedCrop(32, scale=(0.8, 1.0),
+        #                              ratio=(3.0 / 4.0, 4.0 / 3.0),
+        #                              interpolation=Image.BICUBIC),
+        transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
     transform_test = transforms.Compose([
-        transforms.Resize(int(32 * (8 / 7)), interpolation=Image.BICUBIC),
-        transforms.CenterCrop(32),
+        # transforms.Resize(int(32 * (8 / 7)), interpolation=Image.BICUBIC),
+        # transforms.CenterCrop(32),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
     ])
